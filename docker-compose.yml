@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: paymenthub-postgres
+
+    environment:
+      POSTGRES_DB: paymenthub
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+
+    ports:
+      - "5434:5432"
+
+    volumes:
+      - paymenthub_pg_data:/var/lib/postgresql/data
+
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: paymenthub-redis
+
+    ports:
+      - "6381:6379"
+
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./paymenthub
+
+    container_name: paymenthub-backend
+
+    ports:
+      - "8082:8081"
+
+    depends_on:
+      - postgres
+      - redis
+
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+
+    container_name: paymenthub-frontend
+
+    ports:
+      - "5174:5174"
+
+    depends_on:
+      - backend
+
+    restart: unless-stopped
+
+volumes:
+  paymenthub_pg_data:
